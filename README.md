@@ -5,6 +5,7 @@ It's a snake game made by a bored developer for macOS. It may work, it may not.
 Navigate to the project's root directory. 
 From there, run the following commands:
 ```
+make setup
 make
 make run
 ```
