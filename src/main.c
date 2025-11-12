@@ -37,7 +37,7 @@ int main()
 
     struct game_state* gs = game_setup(); 
     
-
+    // If the game is good, continue to render it
     while (game_decisions(gs, key))
     {
         game_render(gs);
@@ -51,7 +51,7 @@ int main()
     }
 
     system("clear");
-    printf("SCORE: \e[0;32m%d\e[0m\n", gs->eaten);
-
+    printf("SCORE: \e[0;32m%d\e[0m", gs->eaten);
+    printf("\n");
 	return 0;
 }

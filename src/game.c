@@ -29,8 +29,11 @@ struct snake_body
 
 struct game_state* game_setup()
 {
+    // initilize and populate structs
     struct winsize ws = get_terminal_dimensions();
     struct game_state* gs = (struct game_state*)malloc(sizeof(struct game_state));
+
+
     gs->term_width = ws.ws_col;
     gs->term_height = ws.ws_row;
     gs->snake_length = 1;
@@ -45,12 +48,13 @@ struct game_state* game_setup()
     gs->head->next = NULL;
     gs->game_board = (char**)malloc(sizeof(char*)*gs->term_height);
 
+    // 2d pointer array for game board
     for (int i = 0; i < gs->term_height; i++)
     {
         gs->game_board[i] = (char*)malloc(sizeof(char)*gs->term_width);
     }
 
-
+    // create board border using #, head of snake using @, and all spaces using the space char (0x20)
     for (int i = 0; i < gs->term_height; i++)
     {
         for (int j = 0; j < gs->term_width; j++)
@@ -85,23 +89,27 @@ void clear_snake_from_board(struct game_state* gs)
 }
 
 void game_render(struct game_state* gs)
-{       
-    system("clear");
+{
+    system("clear"); // clear everything from screen
 
     for (int i = 0; i < gs->term_height; i++)
     {
         for (int j = 0; j < gs->term_width; j++)
         {
-            putchar(gs->game_board[i][j]);
+            putchar(gs->game_board[i][j]); // write char to stdout one by one in gs->game_board
         }
     }
     fflush(stdout); // No idea why, but this is necessary
 }
 
-bool colision(struct game_state* gs)
+bool detect_collision(struct game_state* gs)
 {
+    // returning true if snake is detected hitting boarder
     if (gs->head->vertical_cord == 0 || gs->head->vertical_cord == gs->term_height-1 || gs->head->horizontal_cord == 0 || gs->head->horizontal_cord == gs->term_width-1) return true;
+
+    // go through each part of the body to see if the snake head has interacted with any of it's body
     struct snake_body* tmp_ptr = gs->head->next;
+
     for (int i = 1; i < gs->snake_length; i++)
     {
         if (tmp_ptr->horizontal_cord == gs->head->horizontal_cord && tmp_ptr->vertical_cord == gs->head->vertical_cord) return true;
@@ -110,16 +118,18 @@ bool colision(struct game_state* gs)
     return false;
 }
 
+
 bool draw_snake(struct game_state* gs, int* key)
 {
     struct snake_body* current_snake_ptr = gs->head;
     int current_horizontal_cord, current_vertical_cord;
+
+
     for (int i=0; i < gs->snake_length; i++)
     {
         if (i==0)
         {
-            
-
+            // move head in direction of key press, make sure to add a body part if there is a berry within that direction
             current_horizontal_cord = current_snake_ptr->horizontal_cord;
             current_vertical_cord = current_snake_ptr->vertical_cord;
 
@@ -136,7 +146,7 @@ bool draw_snake(struct game_state* gs, int* key)
                 break;
             }
 
-            if (colision(gs)) return true;
+            if (detect_collision(gs)) return true;
 
             // If berry in spot of overtake, add body part
             if (gs->game_board[current_snake_ptr->vertical_cord][current_snake_ptr->horizontal_cord] == '*')
@@ -155,6 +165,7 @@ bool draw_snake(struct game_state* gs, int* key)
         }
         else
         {
+            // otherwise replace the snake's current body part with that of it's predicesor 
             int tmp_current_horizontal_cord = current_snake_ptr->horizontal_cord;
             int tmp_current_vertical_cord =  current_snake_ptr->vertical_cord;
 
@@ -174,6 +185,7 @@ bool draw_snake(struct game_state* gs, int* key)
 
 void draw_berries(struct game_state* gs)
 {
+    // given the amount of allowed berries to be added, add berries in indices that are only space chars
     if (gs->berries_available < gs->max_berries )
     {
         for (int i = gs->berries_available; i < gs->max_berries ; i++)
@@ -198,7 +210,7 @@ void draw_berries(struct game_state* gs)
 bool game_decisions(struct game_state* gs, int* key)
 {
     clear_snake_from_board(gs);
-    if (draw_snake(gs, key)) return false;
+    if (draw_snake(gs, key)) return false; // if there is a collistion detected at the snake's head, the game is over
     draw_berries(gs);
 
     return true;
